@@ -1,0 +1,52 @@
+{
+  "name": "consensus",
+  "version": "1.0.0",
+  "description": "A Probot app",
+  "author": "Philip Holleran <pholleran@github.com>",
+  "license": "ISC",
+  "repository": "https://github.com//consensus.git",
+  "homepage": "https://github.com//consensus",
+  "bugs": "https://github.com//consensus/issues",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "dev": "nodemon",
+    "start": "probot run ./index.js",
+    "lint": "standard --fix",
+    "test": "jest --no-cache --runInBand && standard",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "probot": "^7.4.0",
+    "probot-config": "^1.0.1"
+  },
+  "devDependencies": {
+    "jest": "^22.4.3",
+    "nock": "^10.0.0",
+    "nodemon": "^1.17.2",
+    "smee-client": "^1.0.2",
+    "standard": "^10.0.3"
+  },
+  "engines": {
+    "node": ">= 10.1.0"
+  },
+  "standard": {
+    "env": [
+      "jest"
+    ]
+  },
+  "nodemonConfig": {
+    "exec": "npm start",
+    "watch": [
+      ".env",
+      "."
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
