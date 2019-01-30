@@ -8,7 +8,7 @@
 
 ## Usage
 
-1. Install the [app]()
+1. Install the app
 2. Create a `.github/consensus.yml` file in your repository
 
 ```yaml
