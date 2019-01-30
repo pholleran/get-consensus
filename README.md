@@ -25,7 +25,7 @@ teams:
   #   * an integer
   #   * majority (conensus will calculate a simple majority for the team)
   #   * all (all team memebrs)
-  consensus: majority
+    consensus: majority
 
 ```
 
