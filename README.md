@@ -1,6 +1,6 @@
 [![Build Status](https://dev.azure.com/phholler/consensus/_apis/build/status/pholleran.consensus?branchName=master)](https://dev.azure.com/phholler/consensus/_build/latest?definitionId=2&branchName=master)
 
-# Consensus
+# Get-Consensus
 
 > A [Probot](https://github.com/probot/probot) app that lets repo admins require multiple reviewers from the same team be defining what constitutes consensus.
 
@@ -29,7 +29,7 @@ teams:
 
 ```
 
-When a review is requested from a team (either via [CODEOWNERS](https://help.github.com/articles/about-code-owners/), the [UI](https://help.github.com/articles/about-pull-request-reviews/#about-pull-request-reviews), or the API) `Consensus` will create review requests from each team member. With each state change of the Pull Request the app will check to see if consensus was reached for each configured team.
+When a review is requested from a team (either via [CODEOWNERS](https://help.github.com/articles/about-code-owners/), the [UI](https://help.github.com/articles/about-pull-request-reviews/#about-pull-request-reviews), or the API) `Get-Consensus` will create review requests from each team member. With each state change of the Pull Request the app will check to see if consensus was reached for each configured team.
 
 > Note: committers to a Pull Request cannot submit reviews with an `approved/request changes` action. As such, committers to a Pull Request are removed when calculating `majority` or `all`.
 
@@ -37,11 +37,11 @@ When a review is requested from a team (either via [CODEOWNERS](https://help.git
 
 ## Deploying
 
-Consensus can be deployed to your own environment following the [probot deployment documentation](https://probot.github.io/docs/deployment/).
+Get-Consensus can be deployed to your own environment following the [probot deployment documentation](https://probot.github.io/docs/deployment/).
 
 If deploying to GitHub Enterprise Server:
 
-* you must be running version `2.15` or later, as Consensus makes use of the [checks API](https://developer.github.com/v3/checks/)
+* you must be running version `2.15` or later, as Get-Consensus makes use of the [checks API](https://developer.github.com/v3/checks/)
 * be sure to set the `GHE_HOST` environment variable per the [probot documentation](https://probot.github.io/docs/github-api/#github-enterprise)
 
 ## License
