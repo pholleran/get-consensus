@@ -1,3 +1,5 @@
+[![Build Status](https://dev.azure.com/phholler/consensus/_apis/build/status/pholleran.consensus?branchName=master)](https://dev.azure.com/phholler/consensus/_build/latest?definitionId=2&branchName=master)
+
 # Consensus
 
 > A [Probot](https://github.com/probot/probot) app that lets repo admins require multiple reviewers from the same team be defining what constitutes consensus.
