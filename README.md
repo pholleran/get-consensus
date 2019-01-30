@@ -4,6 +4,8 @@
 
 > A [Probot](https://github.com/probot/probot) app that lets repo admins require multiple reviewers from the same team be defining what constitutes consensus.
 
+![image](https://user-images.githubusercontent.com/4007128/51991793-d8e46400-2479-11e9-9ccf-52aad6daf35a.png)
+
 ## Usage
 
 1. Install the [app]()
