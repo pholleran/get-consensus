@@ -59,7 +59,7 @@ module.exports = app => {
       // get the results of the consensus test
       const consensusResults = await getConsensus(context, consensusTeams, reviews, commitAuthors)
 
-      createCheck(context, consensusResults)
+      await createCheck(context, consensusResults)
     }
   })
 }
@@ -115,7 +115,7 @@ const createCheck = async (context, consensusResults) => {
     sha = context.payload.pull_request.head.sha
   }
 
-  context.github.checks.create(context.repo({
+  await context.github.checks.create(context.repo({
     name: 'Consensus',
     head_sha: sha,
     status: 'completed',
