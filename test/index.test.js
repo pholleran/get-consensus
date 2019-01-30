@@ -125,7 +125,6 @@ describe('My Probot app', async () => {
       .reply(200)
 
     await probot.receive({ name: 'pull_request_review', payload: reviewSubmittedNoConsensus })
-
   }, 10000)
 
   test('creates a passing check when review threshold is met', async () => {
@@ -133,7 +132,7 @@ describe('My Probot app', async () => {
     nock('https://octodemo.com/api/v3')
       .post('/app/installations/10/access_tokens')
       .reply(200, { token: 'test' })
- 
+
     // mock the config
     nock('https://octodemo.com/api/v3')
       .get('/repos/pH-Inc/test-consensus/contents/.github/consensus.yml')
@@ -181,5 +180,4 @@ describe('My Probot app', async () => {
 
     await probot.receive({ name: 'pull_request_review', payload: reviewSubmittedNoConsensus2 })
   }, 10000)
-  
 })
