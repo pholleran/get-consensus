@@ -116,7 +116,7 @@ const createCheck = async (context, consensusResults) => {
   }
 
   await context.github.checks.create(context.repo({
-    name: 'Consensus',
+    name: 'Get Consensus',
     head_sha: sha,
     status: 'completed',
     conclusion: consensusResults.conclusion,
@@ -236,7 +236,7 @@ const getConsensus = async (context, consensusTeams, reviews, commitAuthors) => 
 
   // generate and populate response object
   let r = {
-    title: 'Consensus team results',
+    title: 'Team results',
     message: '',
     conclusion: ''
   }
