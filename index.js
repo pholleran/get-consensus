@@ -1,3 +1,5 @@
+const metadata = require('probot-metadata');
+
 module.exports = app => {
   app.on('pull_request.review_requested', async context => {
     const config = await getConfig(context)
@@ -10,21 +12,49 @@ module.exports = app => {
       }
       await createCheck(context, e)
     } else {
-      const consensusTeams = config.teams
+      const configuredTeams = config.teams
       const requestedTeams = context.payload.pull_request.requested_teams
+      let teamsAlreadyRequested = await metadata(context).get('teamsAlreadyRequested')
+
+      if (teamsAlreadyRequested === undefined) {
+        teamsAlreadyRequested = []
+      }
 
       for (const team of requestedTeams) {
-        for (const consTeam of consensusTeams) {
+        if (teamsAlreadyRequested.indexOf(team.slug) === -1) {
+          teamsAlreadyRequested.push(team.slug)
+        }
+        for (const consTeam of configuredTeams) {
           if (team.slug === consTeam.slug) {
             await addReviewers(context, team)
           }
         }
       }
+      await metadata(context).set('teamsAlreadyRequested', teamsAlreadyRequested)
     }
   })
 
-  app.on(['pull_request.synchronize', 'pull_request_review.submitted'], async context => {
+  app.on('pull_request.review_request_removed', async context => {
+    let teamsAlreadyRequested = await metadata(context).get('teamsAlreadyRequested')
+    let slug = context.payload.requested_team.slug
+    let index = teamsAlreadyRequested.indexOf(slug)
+
+    if (teamsAlreadyRequested.indexOf(slug) !== -1 ) {
+      teamsAlreadyRequested.splice(index, 1)
+      await metadata(context).set('teamsAlreadyRequested', teamsAlreadyRequested)
+    }
+  })
+
+  app.on(['pull_request.opened', 'pull_request.edited', 'pull_request.synchronize', 'pull_request_review.submitted', 'check_run.rerequested'], async context => {
+    
+
+    if (context.name === 'check_suite' || context.name === 'check_run') {
+      context.payload.number = context.payload.check_run.pull_requests[0].number
+      context.payload.pull_requests = context.payload.check_run.pull_requests
+    }
+
     const config = await getConfig(context)
+    // if an error is present in the config, notify through the check message
     if (config.error) {
       let e = {
         conclusion: 'failure',
@@ -33,33 +63,48 @@ module.exports = app => {
       }
       await createCheck(context, e)
     } else {
-      const consensusTeams = config.teams
-      let prInfo = {
-        owner: context.payload.repository.owner.login,
-        repo: context.payload.repository.name,
-        number: 0
-      }
-      if (context.payload.pull_request) {
-        prInfo.number = context.payload.pull_request.number
+      // retrieve the teams already added to the PR
+      let teamsAlreadyRequested = await metadata(context).get('teamsAlreadyRequested')
+  
+      if (teamsAlreadyRequested === undefined || teamsAlreadyRequested.length === 0) {
+        let e = {
+          conclusion: 'success',
+          title: 'Team results',
+          message: 'No configured teams have been added to this Pull Request.'
+        }
+        await createCheck(context, e)
       } else {
-        prInfo.number = context.payload.check_run.pull_requests[0].number
+        const configuredTeams = config.teams
+        let prInfo = {
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          number: 0
+        }
+        if (context.payload.pull_request) {
+          prInfo.number = context.payload.pull_request.number
+        } else if (context.payload.check_suite) {
+          prInfo.number = context.payload.check_suite.pull_requests[0].number
+        } else {
+          prInfo.number = context.payload.check_run.pull_requests[0].number
+        }
+
+        // get PR commit authors and reviews
+        const commitAuthors = await getCommitAuthors(context, prInfo)
+        const reviewResponse = await context.github.pullRequests.listReviews(prInfo)
+
+        // manipulate review response into a simple object to make it easier to work with
+        let reviews = {}
+
+        for (const r of reviewResponse.data) {
+          reviews[r.user.login] = r.state
+        }
+
+        // get the results of the consensus test
+        const consensusResults = await getConsensus(context, configuredTeams, teamsAlreadyRequested, reviews, commitAuthors)
+
+        // and create the check
+        await createCheck(context, consensusResults)
       }
-
-      // get PR commit authors and reviews
-      const commitAuthors = await getCommitAuthors(context, prInfo)
-      const reviewResponse = await context.github.pullRequests.listReviews(prInfo)
-
-      // manipulate review response into a simple object to make it easier to work with
-      let reviews = {}
-
-      for (const r of reviewResponse.data) {
-        reviews[r.user.login] = r.state
-      }
-
-      // get the results of the consensus test
-      const consensusResults = await getConsensus(context, consensusTeams, reviews, commitAuthors)
-
-      await createCheck(context, consensusResults)
     }
   })
 }
@@ -185,53 +230,59 @@ const getConfig = async (context) => {
   }
 }
 
-const getConsensus = async (context, consensusTeams, reviews, commitAuthors) => {
+const getConsensus = async (context, configuredTeams, teamsAlreadyRequested, reviews, commitAuthors) => {
   let teamStatus = []
 
-  // await Promise.all(consensusTeams.map(async (team) => {
-  for (const team of consensusTeams) {
-    let t = {}
-    t.slug = team.slug
+  // await Promise.all(configuredTeams.map(async (team) => {
+  for (const team of configuredTeams) {
+    // if the configured team has been requested for review run the rest of the logic
+    if (teamsAlreadyRequested.indexOf(team.slug) !== -1) {
 
-    // get team members & total count
-    let consensusTeamMembers = await getTeamMembersBySlug(context, team.slug)
-    let consensusTeamMemberCount = consensusTeamMembers.length
+      let t = {}
+      t.slug = team.slug
 
-    // subtract those who have committed from total team members who can review
-    for (const m of consensusTeamMembers) {
-      if (commitAuthors.indexOf(m) !== -1) {
-        consensusTeamMemberCount -= 1
+      // get team members & total count
+      let consensusTeamMembers = await getTeamMembersBySlug(context, team.slug)
+      let consensusTeamMemberCount = consensusTeamMembers.length
+
+      // subtract those who have committed from total team members who can review
+      for (const m of consensusTeamMembers) {
+        if (commitAuthors.indexOf(m) !== -1) {
+          consensusTeamMemberCount -= 1
+        }
       }
-    }
 
-    // get consensus threshold
-    let consensusThreshold
-    if (Number.isInteger(team.consensus)) {
-      consensusThreshold = team.consensus
-    } else if (team.consensus === 'majority') {
-      consensusThreshold = Math.floor(consensusTeamMemberCount / 2)
-    } else if (team.consensus === 'all') {
-      consensusThreshold = consensusTeamMemberCount - 1
-    } else {
-      console.log('handle error')
-    }
-
-    // check if threshold is met
-    let consensusSuccessCount = 0
-    for (let i = 0; i < consensusTeamMembers.length; i++) {
-      let member = consensusTeamMembers[i]
-      if (reviews[member] === 'APPROVED') {
-        consensusSuccessCount++
+      // get consensus threshold
+      let consensusThreshold
+      if (Number.isInteger(team.consensus)) {
+        consensusThreshold = team.consensus
+      } else if (team.consensus === 'majority') {
+        consensusThreshold = Math.floor(consensusTeamMemberCount / 2)
+      } else if (team.consensus === 'all') {
+        consensusThreshold = consensusTeamMemberCount - 1
+      } else {
+        console.log('handle error')
       }
-    }
-    if (consensusSuccessCount > consensusThreshold) {
-      t.status = 'success'
-      t.message = 'Consensus reached.'
+
+      // check if threshold is met
+      let consensusSuccessCount = 0
+      for (let i = 0; i < consensusTeamMembers.length; i++) {
+        let member = consensusTeamMembers[i]
+        if (reviews[member] === 'APPROVED') {
+          consensusSuccessCount++
+        }
+      }
+      if (consensusSuccessCount > consensusThreshold) {
+        t.status = 'success'
+        t.message = 'Consensus reached.'
+      } else {
+        t.status = 'failure'
+        t.message = 'Consensus not reached. Requires ' + (consensusThreshold + 1) + ' approved reviews. ' + consensusSuccessCount + ' obtained.'
+      }
+      teamStatus.push(t)
     } else {
-      t.status = 'failure'
-      t.message = 'Consensus not reached. Requires ' + (consensusThreshold + 1) + ' approved reviews. ' + consensusSuccessCount + ' obtained.'
+
     }
-    teamStatus.push(t)
   }
 
   // generate and populate response object
