@@ -24,7 +24,7 @@ teams:
   # acceptable values are:
   #   * an integer
   #   * majority (conensus will calculate a simple majority for the team)
-  #   * all (all team memebrs)
+  #   * all (all team members)
     consensus: majority
 
 ```
