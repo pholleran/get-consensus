@@ -1,4 +1,4 @@
-[![Build Status](https://dev.azure.com/phholler/consensus/_apis/build/status/pholleran.consensus?branchName=master)](https://dev.azure.com/phholler/consensus/_build/latest?definitionId=2&branchName=master)
+[![Build Status](https://dev.azure.com/phholler/get-consensus/_apis/build/status/pholleran.get-consensus?branchName=master)](https://dev.azure.com/phholler/get-consensus/_build/latest?definitionId=3&branchName=master)
 
 # Get-Consensus
 
