@@ -9,6 +9,8 @@ const reviewRequestedPayload = require('./fixtures/pull_request.review_requested
 const reviewSubmittedNoConsensus2 = require('./fixtures/pull_request_reviews.submitted.no_consensus2')
 const reviewSubmittedNoConsensus = require('./fixtures/pull_request_reviews.submitted.no_consensus')
 
+const issueGet = require('./fixtures/issue.get.json')
+
 const qaTeamValidationQuery = '{"query":"\\n    query teamMembers($login: String!, $slug: String!) {\\n      organization(login: $login) {\\n        team(slug: $slug) {\\n          name\\n        }\\n      }\\n    }","variables":{"login":"pH-Inc","slug":"qa"}}'
 const qaTeamData = { data: { organization: { team: { members: { nodes: [ { login: 'technical-lead' }, { login: 'spock' }, { login: 'pholleran' }, { login: 'woz' } ] } } } } }
 const buildTeamValidationQuery = '{"query":"\\n    query teamMembers($login: String!, $slug: String!) {\\n      organization(login: $login) {\\n        team(slug: $slug) {\\n          name\\n        }\\n      }\\n    }","variables":{"login":"pH-Inc","slug":"build"}}'
@@ -43,6 +45,12 @@ describe('My Probot app', async () => {
         'content': 'dGVhbXM6CiAgLSBzbHVnOiBxYQogICAgY29uc2Vuc3VzOiBtYWpvcml0eQog\nIC0gc2x1ZzogYnVpbGQKICAgIGNvbnNlbnN1czogYWxsCg==\n'
       })
 
+    // mock the metadata
+    nock('https://octodemo.com/api/v3')
+      .persist()
+      .get('/repos/pH-Inc/test-consensus/issues/8')
+      .reply(200, issueGet)
+
     // mock the qa team validation query
     // mad props to @lewisblackwood for having the answer to how to properly
     // pass a graphql objet back to nock.js https://gist.github.com/lewisblackwood/b71c7063fd5fcf9c7510072d1c60ee20
@@ -68,6 +76,11 @@ describe('My Probot app', async () => {
     // mock the requested_reviewers post
     nock('https://octodemo.com/api/v3')
       .post('/repos/pH-Inc/test-consensus/pulls/8/requested_reviewers', _.matches({ reviewers: ['technical-lead', 'spock', 'woz'] }))
+      .reply(200)
+
+    // mock the metadata
+    nock('https://octodemo.com/api/v3')
+      .patch('/repos/pH-Inc/test-consensus/issues/8')
       .reply(200)
 
     // Recieve a webhook event
