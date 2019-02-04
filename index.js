@@ -1,4 +1,4 @@
-const metadata = require('probot-metadata');
+const metadata = require('probot-metadata')
 
 module.exports = app => {
   app.on('pull_request.review_requested', async context => {
@@ -39,15 +39,13 @@ module.exports = app => {
     let slug = context.payload.requested_team.slug
     let index = teamsAlreadyRequested.indexOf(slug)
 
-    if (teamsAlreadyRequested.indexOf(slug) !== -1 ) {
+    if (teamsAlreadyRequested.indexOf(slug) !== -1) {
       teamsAlreadyRequested.splice(index, 1)
       await metadata(context).set('teamsAlreadyRequested', teamsAlreadyRequested)
     }
   })
 
   app.on(['pull_request.opened', 'pull_request.edited', 'pull_request.synchronize', 'pull_request_review.submitted', 'check_run.rerequested'], async context => {
-    
-
     if (context.name === 'check_suite' || context.name === 'check_run') {
       context.payload.number = context.payload.check_run.pull_requests[0].number
       context.payload.pull_requests = context.payload.check_run.pull_requests
@@ -65,7 +63,7 @@ module.exports = app => {
     } else {
       // retrieve the teams already added to the PR
       let teamsAlreadyRequested = await metadata(context).get('teamsAlreadyRequested')
-  
+
       if (teamsAlreadyRequested === undefined || teamsAlreadyRequested.length === 0) {
         let e = {
           conclusion: 'success',
@@ -237,7 +235,6 @@ const getConsensus = async (context, configuredTeams, teamsAlreadyRequested, rev
   for (const team of configuredTeams) {
     // if the configured team has been requested for review run the rest of the logic
     if (teamsAlreadyRequested.indexOf(team.slug) !== -1) {
-
       let t = {}
       t.slug = team.slug
 

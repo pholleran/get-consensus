@@ -483,5 +483,8 @@
     "received_events_url": "https://octodemo.com/api/v3/users/pholleran/received_events",
     "type": "User",
     "site_admin": false
+  },
+  "installation": {
+    "id": 10
   }
 }
