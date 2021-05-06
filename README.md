@@ -29,7 +29,7 @@ teams:
 
 ```
 
-When a review is requested from a team (either via [CODEOWNERS](https://help.github.com/articles/about-code-owners/), the [UI](https://help.github.com/articles/about-pull-request-reviews/#about-pull-request-reviews), or the API) `Get-Consensus` will create review requests from each team member. With each state change of the Pull Request the app will check to see if consensus was reached for each configured team.
+When a review is requested from a team (either via [CODEOWNERS](https://help.github.com/articles/about-code-owners/), the [UI](https://help.github.com/articles/about-pull-request-reviews/#about-pull-request-reviews), or the API) `Get-Consensus` will create review requests for each team member. With each state change of the Pull Request the app will check to see if consensus was reached for each configured team.
 
 > Note: committers to a Pull Request cannot submit reviews with an `approved/request changes` action. As such, committers to a Pull Request are removed when calculating `majority` or `all`.
 
