@@ -1,6 +1,6 @@
 [![Build Status](https://dev.azure.com/phholler/get-consensus/_apis/build/status/pholleran.get-consensus?branchName=master)](https://dev.azure.com/phholler/get-consensus/_build/latest?definitionId=3&branchName=master)
 
-**Note: This application is no longer maintained. If you're looking for a more robust solution to complex PR approval rules, with a robust community of users, please take a look at [palantir/policy-bot](https://github.com/palantir/policy-bot).
+**Note:** This application is no longer maintained. If you're looking for a more robust solution to complex PR approval rules, with a robust community of users, please take a look at [palantir/policy-bot](https://github.com/palantir/policy-bot).
 
 # Get-Consensus
 
